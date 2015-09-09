@@ -32,10 +32,10 @@
 
 # Disable brp-java-repack-jars for aspect J
 %define __os_install_post    \
-    /usr/lib/rpm/redhat/brp-compress \
-    %{!?__debug_package:/usr/lib/rpm/redhat/brp-strip %{__strip}} \
-    /usr/lib/rpm/redhat/brp-strip-static-archive %{__strip} \
-    /usr/lib/rpm/redhat/brp-strip-comment-note %{__strip} %{__objdump} \
+    /usr/lib/rpm/brp-compress \
+    %{!?__debug_package:/usr/lib/rpm/brp-strip %{__strip}} \
+    /usr/lib/rpm/brp-strip-static-archive %{__strip} \
+    /usr/lib/rpm/brp-strip-comment-note %{__strip} %{__objdump} \
     /usr/lib/rpm/brp-python-bytecompile %{nil}
 
 # RPM searches perl files for dependancies and this breaks for non packaged perl lib
@@ -68,6 +68,7 @@ tar fxz %{_python_lib} -C %{_build_dir}
 #### INSTALL SECTION ####
 #########################
 %install
+%{__mv} %{_build_dir}/* %{buildroot}
 
 %pre
 
