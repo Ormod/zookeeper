@@ -1401,12 +1401,27 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         return lastSeenQuorumVerifier;        
     }
     
-    public synchronized void connectNewPeers(){
+    public synchronized void connectNewPeers() {
        if (qcm!=null && getQuorumVerifier()!=null && getLastSeenQuorumVerifier()!=null) {
            Map<Long, QuorumServer> committedView = getQuorumVerifier().getAllMembers();
            for (Entry<Long, QuorumServer> e: getLastSeenQuorumVerifier().getAllMembers().entrySet()){
-               if (e.getKey() != getId() && !committedView.containsKey(e.getKey())) 
-                   qcm.connectOne(e.getKey());
+               if (e.getKey() != getId() && !committedView.containsKey(e.getKey())) {
+                   /**
+                    * ZOOKEEPER-2202: it's fine if we can't reach a server when
+                    * setLastSeenQuorumVerifier() is called. It will be tried
+                    * again by the QCM later on. Not catching the exceptions here
+                    * means a reconfig() request which adds a server that's not reachable
+                    * could crash the cluster (given connectOne() throws all kinds of
+                    * socket errors).
+                    *
+                    */
+                   try {
+                       qcm.connectOne(e.getKey());
+                   } catch (Exception ex) {
+                       LOG.error("Connecting to server with id {} failed: {}",
+                           e.getKey(), e.toString());
+                   }
+               }
            }
         }
     }
